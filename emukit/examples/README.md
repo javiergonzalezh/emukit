@@ -45,11 +45,13 @@ Do not forget to update the `notebooks/index.ipynb` for your tutorial to show up
 
 ## <a name="list-of-examples"></a>List of examples
 
-* [Cost sensitive Bayesian optimization](https://github.com/amzn/emukit/tree/master/emukit/examples/cost_sensitive_bayesian_optimization) - Wrapper for using Bayesian optimization when there is a cost involved in the evaluation of the objective.
 * [Gaussian process Bayesian Optimization](https://github.com/amzn/emukit/tree/master/emukit/examples/gp_bayesian_optimization) - Wrapper for using Bayesian optimization with Gaussian processes.
 * [Vanilla Bayesian Quadrature](https://github.com/amzn/emukit/tree/master/emukit/examples/vanilla_bayesian_quadrature_with_rbf) - Wrapper for vanilla Bayesian quadrature that uses a Gaussian processes with an RBF kernel.
 * [Models](https://github.com/amzn/emukit/tree/master/emukit/examples/models) - Implementation of a variety of models that can be used in combination with other Emukit features.
-* [Mountain car](https://github.com/amzn/emukit/tree/master/emukit/examples/emulation_montain_car_simulator) - Optimization of the control policy of the mountain car simulator. Optimization is applied using an emulator of the reward and of the dynamics of the simulator.
+* [Mountain car simulator](https://github.com/amzn/emukit/tree/master/emukit/examples/emulation_montain_car_simulator) - Optimization of the control policy of the mountain car simulator. Optimization is applied using an emulator of the reward and of the dynamics of the simulator.
+* [Spread of disease case study](https://github.com/amzn/emukit/tree/master/emukit/examples/spread_of_disease-with_seir_model) - This notebook uses the SEIR-model and Emukit to answer several application driven research questions.
+* [Bayesian optimization with binary outputs](https://github.com/amzn/emukit/tree/master/emukit/examples/bayesian_optimization_binary_outputs) - Use Bayesian optimization when the output of your objective function is a binary variable.
+
 
 
 ## <a name="list-of-tutorials"></a>List of tutorials

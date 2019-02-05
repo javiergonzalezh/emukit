@@ -96,6 +96,44 @@ class GPyModelWrapper(IModel, IDifferentiable, ICalculateVarianceReduction, IEnt
         return self.model.Y
 
 
+class GPyModelBinaryOutputsWrapper(GPyModelWrapper):
+    """
+    This is a thin wrapper around GPy models for classification to allow users to plug GPy models into Emukit.
+    The only main change with respect to the wrapper GPyModelWrapper is that the computation of the predictive
+    mean and variance are computed using f.
+    """
+    def __init__(self, gpy_model):
+        self.model = gpy_model
+
+    def predict(self, X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        :param X: (n_points x n_dimensions) array containing locations at which to get predictions
+        :return: (mean, variance) Arrays of size n_points x 1 of the predictive distribution at each input location
+        """
+        return self.model.predict_noiseless(X)
+
+    def calculate_variance_reduction(self, x_train_new: np.ndarray, x_test: np.ndarray) -> np.ndarray:
+        """
+        Computes the variance reduction of f at x_test, if a new point at x_train_new is acquired
+        """
+        covariance = self.model.posterior_covariance_between_points(x_train_new, x_test)
+        variance_prediction = self.model.predict_noiseless(x_train_new)[1]
+        return covariance**2 / variance_prediction
+
+    def predict_covariance(self, X: np.ndarray, with_noise: bool=True) -> np.ndarray:
+        """
+        Calculates posterior covariance between points in X
+        :param X: Array of size n_points x n_dimensions containing input locations to compute posterior covariance at
+        :param with_noise: Whether to include likelihood noise in the covariance matrix
+        :return: Posterior covariance matrix of size n_points x n_points
+        """
+        _, v = self.model.predict_noiseless(X, full_cov=True, include_likelihood=with_noise)
+        v = np.clip(v, 1e-10, np.inf)
+
+        return v
+
+
+
 class GPyMultiOutputWrapper(IModel, IDifferentiable, ICalculateVarianceReduction, IEntropySearchModel):
     """
     A wrapper around GPy multi-output models.
