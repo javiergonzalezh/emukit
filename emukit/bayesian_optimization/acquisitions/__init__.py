@@ -6,3 +6,4 @@ from .expected_improvement import ExpectedImprovement, IntegratedExpectedImprove
 from .negative_lower_confidence_bound import NegativeLowerConfidenceBound  # noqa: F401
 from .probability_of_improvement import ProbabilityOfImprovement  # noqa: F401
 from .entropy_search import EntropySearch  # noqa: F401
+from .expected_loss import ExpectedLoss
