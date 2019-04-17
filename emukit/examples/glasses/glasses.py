@@ -3,12 +3,10 @@ import numpy as np
 from emukit.core import ParameterSpace
 from emukit.core.interfaces import IModel, IDifferentiable
 from emukit.core.acquisition import Acquisition
-from emukit.core.acquisition import Acquisition
-from emukit.core.interfaces import IDifferentiable
 from emukit.bayesian_optimization.acquisitions.local_penalization import LocalPenalization
-from emukit.core.optimization import LocalSearchAcquisitionOptimizer
+from emukit.core.optimization import GradientAcquisitionOptimizer
 from emukit.bayesian_optimization.local_penalization_calculator import _estimate_lipschitz_constant
-from emukit.bayesian_optimization.acquisitions import ExpectedLoss
+from emukit.bayesian_optimization.acquisitions import ExpectedImprovement, LogAcquisition
 from quadrature.emin_epmgp import emin_epmgp
 
 
@@ -19,9 +17,9 @@ from typing import Union
 class PredictFutureLocationsLocalPenalization:
     def __init__(self, acquisition: Acquisition, model: Union[IModel, IDifferentiable], parameter_space: ParameterSpace,
                  n_look_ahead: int):
-        self.acquisition = acquisition
-        self.acquisition_optimizer = LocalSearchAcquisitionOptimizer(parameter_space, num_steps = 200,
-                                                                     num_init_points = 15)
+
+        self.acquisition = LogAcquisition(acquisition) # later the gradients are computed in log space
+        self.acquisition_optimizer = GradientAcquisitionOptimizer(parameter_space)
         self.n_look_ahead = n_look_ahead
         self.model = model
         self.parameter_space = parameter_space
@@ -38,12 +36,12 @@ class PredictFutureLocationsLocalPenalization:
         # Initialize local penalization acquisition
         local_penalization_acquisition = LocalPenalization(self.model)
 
-        # Everything done in log space so addition here is same as multiplying acquisition with local penalization
-        # function.
+        # Everything done in log space
         acquisition = self.acquisition + local_penalization_acquisition
 
         future_locations = [x]
-        for i in range(self.n_look_ahead - 1):
+        for i in range(self.n_look_ahead - 1): # the fist evaluation is fixed
+
             # Collect point
             x_next, _ = self.acquisition_optimizer.optimize(acquisition, context)
             future_locations.append(x_next)
@@ -72,11 +70,13 @@ class AcquisitionGLASSES(Acquisition):
 
         :param model: model that is used to compute the improvement.
         :param jitter: parameter to encourage extra exploration.
+
+        Note: the future locations are calculated using the expected improvement instead of the expected loss.
         """
 
         self.model = model
         self.parameter_space = parameter_space
-        self.expected_loss = ExpectedLoss(self.model)
+        self.expected_improvement = ExpectedImprovement(self.model)
         self.remaining_look_ahead = 1
 
     def evaluate(self, x: np.ndarray) -> np.ndarray:
@@ -87,7 +87,7 @@ class AcquisitionGLASSES(Acquisition):
         """
 
         ### --- predict future locations of the policy
-        oracle = PredictFutureLocationsLocalPenalization(self.expected_loss, self.model,
+        oracle = PredictFutureLocationsLocalPenalization(self.expected_improvement, self.model,
                                                         self.parameter_space, self.remaining_look_ahead)
         oracle_locations = oracle.compute_next_points(x)
 
